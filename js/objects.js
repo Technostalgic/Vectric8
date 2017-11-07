@@ -1,9 +1,9 @@
 class object{
-	constructor(body = null){
-		if(!body)
-			this.setBody(object.defaultBody);
+	constructor(composite = null){
+		if(!composite)
+			this.setComposite(object.getDefaultComposite());
 		else
-			this.setBody(body);
+			this.setComposite(composite);
 		this.outlineCol = "#fff";
 		this.fillCol = "#000";
 		this.health = 1;
@@ -13,6 +13,8 @@ class object{
 		this._dead = false;
 		this._inWorld = false;
 	}
+	
+	/* depricated from body-based container
 	setBody(body, pos = null){
 		var lpos = !!this.physBody ? this.pos.clone() : new vec2();
 		if(pos)
@@ -21,16 +23,137 @@ class object{
 		this.physBody = body;
 		body.gameObject = this;
 		this.setPos(lpos);
+	}*/)
+	
+	setComposite(composite, pos = null){
+		this.composite = composite;
+		if(pos)
+	}
+	getBodies(){
+		return Matter.Composite.allBodies(this.composite);
+	}
+	
+	/* this.getPosition()
+		returns the average position of all the bodies in this.composite
+	*/
+	getPosition(){
+		var bods = this.getBodies();
+		if(bods.length <= 0) return 0;
+		var tpos = new vec2();
+		for(var i in bods)
+			tpos = tpos.plus(bods[i].position);
+		return tpos.multiply(1 / bods.length);
+	}
+	/* this.setPosition(vec2 pos)
+		centers all the bodies in the composite around the specified point
+		pos: the specified point
+	*/
+	setPosition(pos){
+		var opos = this.getPosition();
+		var bods = this.getBodies();
+		for(var i in bods){
+			var dpos = vec2.fromOther(bods[i].position).minus(opos);
+			Matter.Body.setPosition(bods[i], pos.plus(dpos));
+		}
+	}
+	/* this.getVelocity(bool massDependent)
+		gets the average velocity of the bodies in this container
+		massDependent: whether or not the mass of the bodies should carry weight in calculating the average velocity
+	*/
+	getVelocity(massDependent = true){
+		var bods = this.getBodies();
+		if(bods.length <= 0) return new vec2();
+		var tvel = new vec2();
+		for(var i in bods){
+			var add = massDependent ? 
+				vec2.fromOther(bods[i].velocity).multiply(bods[i].mass) : 
+				vec2.fromOther(bods[i].velocity);
+			tvel = tvel.plus(add);
+		}
+		var div = massDependent ? this.getMass() : bods.length;
+		return tvel.multiply(1 / div);
+	}
+	/* this.setVelocity(vec2 vel)
+		sets the contained bodies' velocity so that the average velocity of them all will match the specified velocity
+		vel: the velocity to set to
+	*/
+	setVelocity(vel){
+		var ovel = this.getVelocity();
+		var bods = this.getBodies();
+		for(var i in bodies){
+			var dvel = vec2.fromOther(bods[i].velocity).minus(ovel);
+			Matter.Body.setVelocity(bods[i], vel.plus(dvel));
+		}
+	}
+	/* this.getAngularVelocity()
+		returns the average angular velocity of all contained bodies
+	*/
+	getAngularVelocity(){
+		var bods = this.getBodies();
+		if(bods.length <= 0) return 0;
+		var tangvel = 0;
+		for(var i in bods)
+			tangvel += bods[i].angularVelocity;
+		return tangvel / bods.length;
+	}
+	/* this.setAngularVelocity(Number angvel)
+		sets the angular velocities of contained bodies such that the average angular velocity of them all is equal to angvel
+		angvel: the average angular velocity to set
+	*/
+	setAngularVelocity(angvel){
+		var oangvel = this.getAngularVelocity();
+		var bods = this.getBodies();
+		for(var i in bods){
+			var dangvel = bods[i].angularVelocity - oangvel;
+			Matter.Body.setAngularVelocity(bods[i], oangvel + dangvel);
+		}
+	}
+	/* this.getArea();
+		returns the cumulative area of all contained bodies
+	*/
+	getArea(){
+		var bods = this.getBodies();
+		var tarea = 0;
+		for(var i in  bods)
+			tarea += bods[i].area;
+		return tarea;
+	}
+	/* this.getDensity(bool areaDependent)
+		returns the average density of all contained bodies
+		areaDependent: whether or not the surface area of the body should carry weight in calculating the average density
+	*/
+	getDensity(areaDependent = true){
+		var bods = this.getBodies();
+		if(bods.length <= 0) return 0;
+		var tden = 0;
+		for(var i in bods)
+			tden += areaDependent ?
+				bods[i].density * bods[i].area :
+				bods[i].denisty;
+		var div = areaDependent ? this.getArea() : bods.length;
+		return tden / div;
+	}
+	/* this.getMass()
+		returns the cumulative mass of all contained bodies
+	*/
+	getMass(){
+		var bods = this.getBodies();
+		var r = 0;
+		for(var i in bods)
+			r += bods[i].mass;
+		return r;
 	}
 	
 	get team(){
 		return 0;
 	}
-	get pos(){
+	
+	/* depricated from body-based container
+	√get pos(){ 
 		if(this.physBody)
 			return new vec2(this.physBody.position.x, this.physBody.position.y);
 	}
-	get vel(){
+	√get vel(){
 		if(this.physBody)
 			return new vec2(this.physBody.velocity.x, this.physBody.velocity.y);
 	}
@@ -38,28 +161,23 @@ class object{
 		if(this.physBody)
 			return this.physBody.angle;
 	}
-	get angVel(){
+	√get angVel(){
 		if(this.physBody)
 			return this.physBody.angularVelocity;
 	}
-	get density(){
+	√get density(){
 		if(this.physBody)
 			return this.physBody.density;
 	}
-	get mass(){
+	√get mass(){
 		if(this.physBody)
 			return this.physBody.mass;
-	}
+	}*/
+	
 	get ID(){
 		return this.physBody.id;
 	}
 	
-	setPos(vec){
-		Matter.Body.setPosition(this.physBody, vec.toPhysVector());
-	}
-	setVel(vec){
-		Matter.Body.setVelocity(this.physBody, vec.toPhysVector());
-	}
 	setAngle(angle){
 		Matter.Body.setAngle(this.physBody, angle);
 	}
@@ -252,14 +370,17 @@ class object{
 			r.push(oblist[i].physBody);
 		return r;
 	}
-	static get defaultBody(){
-		var size = 2;
+	static getDefaultBody(size = 5){
 		return bodyFromVerts([
 			new vec2(size,-size), 
 			new vec2(size,size), 
 			new vec2(-size,size), 
 			new vec2(-size,-size)
 		]);
+	}
+	static getDefaultComposite(){
+		var c = Matter.Composite.create();
+		Matter.Composite.add(c, object.getDefaultBody());
 	}
 }
 
