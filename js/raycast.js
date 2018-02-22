@@ -2,6 +2,9 @@
 ///				code by Isaiah Smith
 ///		technostalgic.itch.io  |  @technostalgicGM
 ///
+///						repo:
+///	https://github.com/Technostalgic/MatterJS_Raycast.git
+///
 
 
 //raycast functionality integrated with matter.js since there 
@@ -47,10 +50,10 @@ function raycast(bodies, start, end, sort = true){
 	}
 	
 	//if desired, we then sort the collisions based on the
-	//disance from the ray's start
+	//distance from the ray's start
 	if(sort)
 		cols.sort(function(a,b){
-			return a.point.distance(start) > b.point.distance(start);
+			return a.point.distance(start) - b.point.distance(start);
 		});
 	
 	return cols;
@@ -226,11 +229,11 @@ class ray{
 	}
 }
 
-//in order to avoid miscalculations due to floating points
-//error, which for whatever reason javascript has a ton of
+//in order to avoid miscalculations due to floating point
+//errors
 //example:
-//var m = 6; m -= 1; m -= 3; m += 4
-//now 'm' probably equals 6.0000000008361 or something stupid
+//	var m = 6; m -= 1; m -= 3; m += 4
+//	now 'm' probably equals 6.0000000008361 or something stupid
 function compareNum(a, b, leniency = 0.00001){
 	return Math.abs(b - a) <= leniency;
 }
