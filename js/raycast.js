@@ -18,7 +18,7 @@
 //param 'end' - end point of raycast
 //param 'sort' - whether or not the ray collisions should be
 //	sorted based on distance from the origin
-function raycast(bodies, start, end, sort = true){
+function raycast(bodies, start, end, sort = true){ 
 	//convert the start & end parameters to my custom
 	//'vec2' object type
 	start = vec2.fromOther(start);
